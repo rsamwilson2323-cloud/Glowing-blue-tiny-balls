@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Moonlight Particles</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #02020a;
+    touch-action: none;
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+onresize = resize;
+
+let stars = [];
+let isTouching = false;
+let tx = 0, ty = 0;
+
+function addStar(x, y){
+  stars.push({
+    x,
+    y,
+    size: Math.random()*4 + 2,
+    alpha: 1,
+    hue: 200 + Math.random()*80
+  });
+}
+
+// TOUCH
+document.addEventListener("touchstart", e=>{
+  let t = e.touches[0];
+  tx = t.clientX;
+  ty = t.clientY;
+  isTouching = true;
+  addStar(tx,ty);
+});
+document.addEventListener("touchmove", e=>{
+  let t = e.touches[0];
+  tx = t.clientX;
+  ty = t.clientY;
+  isTouching = true;
+});
+document.addEventListener("touchend", ()=> isTouching=false);
+
+// MOUSE
+document.addEventListener("mousedown", e=>{
+  tx = e.clientX;
+  ty = e.clientY;
+  isTouching = true;
+  addStar(tx,ty);
+});
+document.addEventListener("mousemove", e=>{
+  if(isTouching){
+    tx = e.clientX;
+    ty = e.clientY;
+  }
+});
+document.addEventListener("mouseup", ()=> isTouching=false);
+
+// DRAW STAR
+function drawStar(s){
+  ctx.save();
+  ctx.fillStyle = `hsla(${s.hue},100%,70%,${s.alpha})`;
+  ctx.shadowColor = `hsla(${s.hue},100%,70%,1)`;
+  ctx.shadowBlur = 20;
+
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// ANIMATE
+function animate(){
+  ctx.fillStyle = "rgba(0,0,20,0.25)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  if(isTouching){
+    addStar(tx,ty);
+  }
+
+  stars.forEach((s,i)=>{
+    drawStar(s);
+
+    // ⭐ Vanish time increased by 2/4 (50% slower)
+    s.alpha -= 0.00140625;
+
+    if(s.alpha <= 0){
+      stars.splice(i,1);
+    }
+  });
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
